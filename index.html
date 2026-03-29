@@ -156,9 +156,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <div class="modal-overlay" id="settingsModal">
   <div class="modal">
     <h2>⚙ Réglages</h2>
-    <label>Clé API Anthropic</label>
-    <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-...">
-    <div class="hint">Obtiens ta clé sur <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--accent)">console.anthropic.com</a></div>
+    <label>Clé API Google Gemini (gratuit)</label>
+    <input type="password" id="apiKeyInput" placeholder="AIzaSy...">
+    <div class="hint">Obtiens ta clé gratuite sur <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent)">aistudio.google.com/apikey</a> (aucune carte bancaire requise)</div>
     <div class="api-status" id="apiStatus"></div>
 
     <label>EmailJS Public Key <span style="opacity:0.5">(optionnel)</span></label>
@@ -218,7 +218,7 @@ function getTranscriptText() {
 
 // --- Settings ---
 function openSettings() {
-  document.getElementById('apiKeyInput').value = localStorage.getItem('anthropic_key') || '';
+  document.getElementById('apiKeyInput').value = localStorage.getItem('gemini_key') || '';
   document.getElementById('emailjsKeyInput').value = localStorage.getItem('emailjs_key') || '';
   document.getElementById('emailjsServiceInput').value = localStorage.getItem('emailjs_service') || '';
   document.getElementById('emailjsTemplateInput').value = localStorage.getItem('emailjs_template') || '';
@@ -236,8 +236,8 @@ function saveSettings() {
   const ejsService = document.getElementById('emailjsServiceInput').value.trim();
   const ejsTemplate = document.getElementById('emailjsTemplateInput').value.trim();
 
-  if (key) localStorage.setItem('anthropic_key', key);
-  else localStorage.removeItem('anthropic_key');
+  if (key) localStorage.setItem('gemini_key', key);
+  else localStorage.removeItem('gemini_key');
 
   if (ejsKey) { localStorage.setItem('emailjs_key', ejsKey); emailjs.init(ejsKey); }
   else localStorage.removeItem('emailjs_key');
@@ -252,10 +252,10 @@ function saveSettings() {
 }
 
 function checkApiKey() {
-  const key = localStorage.getItem('anthropic_key');
+  const key = localStorage.getItem('gemini_key');
   const el = document.getElementById('apiStatus');
   if (key) {
-    el.textContent = '✓ Clé configurée';
+    el.textContent = '✓ Clé Gemini configurée (gratuit)';
     el.className = 'api-status ok';
   } else {
     el.textContent = '⚠ Clé requise pour transformer';
@@ -326,9 +326,9 @@ async function processText() {
   rawText = getTranscriptText();
   if (!rawText) return;
 
-  const apiKey = localStorage.getItem('anthropic_key');
+  const apiKey = localStorage.getItem('gemini_key');
   if (!apiKey) {
-    showToast('Configure ta clé API dans les réglages ⚙', 'error');
+    showToast('Configure ta clé Gemini dans les réglages ⚙', 'error');
     openSettings();
     return;
   }
@@ -347,19 +347,13 @@ async function processText() {
     : 'Tu es un assistant qui transforme des notes dictées en mémo structuré et professionnel.\nRègles:\n- Génère un titre court et percutant\n- Structure le contenu en paragraphes clairs\n- Utilise **gras** pour les points clés\n- Corrige la grammaire et les hésitations de l\'oral\n- Garde le sens et les détails importants\n- Réponds UNIQUEMENT en JSON : {"title": "...", "content": "..."}';
 
   try {
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
+    const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: sp,
-        messages: [{ role: 'user', content: rawText }]
+        system_instruction: { parts: [{ text: sp }] },
+        contents: [{ parts: [{ text: rawText }] }],
+        generationConfig: { maxOutputTokens: 1000, responseMimeType: 'application/json' }
       })
     });
 
@@ -369,7 +363,7 @@ async function processText() {
     }
 
     const data = await r.json();
-    const txt = data.content?.map(c => c.text || '').join('') || '';
+    const txt = data.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
     const cl = txt.replace(/```json|```/g, '').trim();
     const parsed = JSON.parse(cl);
     pe.remove();
