@@ -38,6 +38,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .listening-dot{width:8px;height:8px;background:var(--red);border-radius:50%;animation:pulse-dot 1.2s ease-in-out infinite}
 @keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.8)}}
 
+/* Engine badge */
+.engine-badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;margin-left:8px;vertical-align:middle;text-transform:uppercase;letter-spacing:0.5px}
+.engine-badge.local{background:var(--green-dim);color:var(--green)}
+.engine-badge.gemini{background:rgba(66,133,244,0.15);color:#4285F4}
+.engine-badge.anthropic{background:var(--accent-glow);color:var(--accent)}
+
 /* Results */
 .results{display:flex;flex-direction:column;gap:10px;flex:1}
 .result-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;animation:slideUp 0.3s ease-out;position:relative}
@@ -84,23 +90,29 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 /* Settings Modal */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.active{display:flex}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:100%;max-width:400px}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:100%;max-width:400px;max-height:90vh;overflow-y:auto}
 .modal h2{font-size:16px;font-weight:700;margin-bottom:16px;color:var(--accent)}
 .modal label{display:block;font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:6px;margin-top:14px}
 .modal label:first-of-type{margin-top:0}
-.modal input{width:100%;padding:10px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none}
-.modal input:focus{border-color:var(--accent)}
+.modal input,.modal select{width:100%;padding:10px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none}
+.modal input:focus,.modal select:focus{border-color:var(--accent)}
+.modal select{font-family:var(--font);cursor:pointer}
+.modal select option{background:var(--surface-2);color:var(--text)}
 .modal .hint{font-size:11px;color:var(--text-muted);margin-top:4px;line-height:1.4}
+.modal .section{margin-top:18px;padding-top:14px;border-top:1px solid var(--border)}
+.modal .section-title{font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px}
+.api-fields{display:none}
+.api-fields.active{display:block}
 .modal-btns{display:flex;gap:10px;margin-top:20px}
 .modal-btns button{flex:1;padding:10px;border:none;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer}
 .modal-btns .save-btn{background:var(--accent);color:#fff}
 .modal-btns .cancel-btn{background:var(--surface-2);color:var(--text-muted);border:1px solid var(--border)}
 .api-status{font-size:11px;margin-top:6px;font-weight:500}
 .api-status.ok{color:var(--green)}
-.api-status.missing{color:var(--red)}
+.api-status.missing{color:var(--orange)}
 
 /* Toast */
-.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:200;opacity:0;transition:all 0.3s;pointer-events:none;white-space:nowrap}
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:200;opacity:0;transition:all 0.3s;pointer-events:none;white-space:nowrap;max-width:90vw;overflow:hidden;text-overflow:ellipsis}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.success{border-color:var(--green);color:var(--green)}
 .toast.error{border-color:var(--red);color:var(--red)}
@@ -156,18 +168,37 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 <div class="modal-overlay" id="settingsModal">
   <div class="modal">
     <h2>⚙ Réglages</h2>
-    <label>Clé API Google Gemini (gratuit)</label>
-    <input type="password" id="apiKeyInput" placeholder="AIzaSy...">
-    <div class="hint">Obtiens ta clé gratuite sur <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent)">aistudio.google.com/apikey</a> (aucune carte bancaire requise)</div>
-    <div class="api-status" id="apiStatus"></div>
 
-    <label>EmailJS Public Key <span style="opacity:0.5">(optionnel)</span></label>
-    <input type="text" id="emailjsKeyInput" placeholder="Ex: user_aBcDeFgHiJk">
-    <label>EmailJS Service ID <span style="opacity:0.5">(optionnel)</span></label>
-    <input type="text" id="emailjsServiceInput" placeholder="Ex: service_xxx">
-    <label>EmailJS Template ID <span style="opacity:0.5">(optionnel)</span></label>
-    <input type="text" id="emailjsTemplateInput" placeholder="Ex: template_xxx">
-    <div class="hint">Pour l'envoi auto d'emails. Inscris-toi sur <a href="https://www.emailjs.com/" target="_blank" style="color:var(--accent)">emailjs.com</a> (gratuit). Sans config EmailJS, un mailto: sera utilisé.</div>
+    <label>Moteur de transformation</label>
+    <select id="engineSelect" onchange="onEngineChange()">
+      <option value="local">Local (offline, sans clé)</option>
+      <option value="gemini">Google Gemini (gratuit)</option>
+      <option value="anthropic">Anthropic Claude (payant)</option>
+    </select>
+    <div class="api-status" id="engineStatus"></div>
+
+    <div class="api-fields" id="geminiFields">
+      <label>Clé API Gemini</label>
+      <input type="password" id="geminiKeyInput" placeholder="AIzaSy...">
+      <div class="hint">Clé gratuite sur <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent)">aistudio.google.com/apikey</a></div>
+    </div>
+
+    <div class="api-fields" id="anthropicFields">
+      <label>Clé API Anthropic</label>
+      <input type="password" id="anthropicKeyInput" placeholder="sk-ant-api03-...">
+      <div class="hint">Clé sur <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--accent)">console.anthropic.com</a> (payant à l'usage)</div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Email (optionnel)</div>
+      <label>EmailJS Public Key</label>
+      <input type="text" id="emailjsKeyInput" placeholder="Ex: user_aBcDeFgHiJk">
+      <label>EmailJS Service ID</label>
+      <input type="text" id="emailjsServiceInput" placeholder="Ex: service_xxx">
+      <label>EmailJS Template ID</label>
+      <input type="text" id="emailjsTemplateInput" placeholder="Ex: template_xxx">
+      <div class="hint">Pour l'envoi auto d'emails. Inscris-toi sur <a href="https://www.emailjs.com/" target="_blank" style="color:var(--accent)">emailjs.com</a> (gratuit). Sans config, un mailto: sera utilisé.</div>
+    </div>
 
     <div class="modal-btns">
       <button class="cancel-btn" onclick="closeSettings()">Annuler</button>
@@ -187,14 +218,10 @@ const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 // --- Init ---
 document.addEventListener('DOMContentLoaded', () => {
   if (!SR) showToast('Reconnaissance vocale non supportée. Utilise Chrome.', 'error');
-  checkApiKey();
   loadResults();
   initTranscriptBox();
-  // Init EmailJS if configured
   const ejsKey = localStorage.getItem('emailjs_key');
-  if (ejsKey && window.emailjs) {
-    emailjs.init(ejsKey);
-  }
+  if (ejsKey && window.emailjs) emailjs.init(ejsKey);
 });
 
 // --- Transcript (contenteditable) ---
@@ -217,12 +244,38 @@ function getTranscriptText() {
 }
 
 // --- Settings ---
+function getEngine() { return localStorage.getItem('engine') || 'local'; }
+
+function onEngineChange() {
+  const engine = document.getElementById('engineSelect').value;
+  document.getElementById('geminiFields').classList.toggle('active', engine === 'gemini');
+  document.getElementById('anthropicFields').classList.toggle('active', engine === 'anthropic');
+  updateEngineStatus(engine);
+}
+
+function updateEngineStatus(engine) {
+  const el = document.getElementById('engineStatus');
+  if (engine === 'local') {
+    el.textContent = '✓ Fonctionne sans internet ni clé API';
+    el.className = 'api-status ok';
+  } else if (engine === 'gemini') {
+    el.textContent = localStorage.getItem('gemini_key') ? '✓ Clé Gemini configurée' : '⚠ Clé Gemini requise';
+    el.className = localStorage.getItem('gemini_key') ? 'api-status ok' : 'api-status missing';
+  } else {
+    el.textContent = localStorage.getItem('anthropic_key') ? '✓ Clé Anthropic configurée' : '⚠ Clé Anthropic requise';
+    el.className = localStorage.getItem('anthropic_key') ? 'api-status ok' : 'api-status missing';
+  }
+}
+
 function openSettings() {
-  document.getElementById('apiKeyInput').value = localStorage.getItem('gemini_key') || '';
+  const engine = getEngine();
+  document.getElementById('engineSelect').value = engine;
+  document.getElementById('geminiKeyInput').value = localStorage.getItem('gemini_key') || '';
+  document.getElementById('anthropicKeyInput').value = localStorage.getItem('anthropic_key') || '';
   document.getElementById('emailjsKeyInput').value = localStorage.getItem('emailjs_key') || '';
   document.getElementById('emailjsServiceInput').value = localStorage.getItem('emailjs_service') || '';
   document.getElementById('emailjsTemplateInput').value = localStorage.getItem('emailjs_template') || '';
-  checkApiKey();
+  onEngineChange();
   document.getElementById('settingsModal').classList.add('active');
 }
 
@@ -231,36 +284,24 @@ function closeSettings() {
 }
 
 function saveSettings() {
-  const key = document.getElementById('apiKeyInput').value.trim();
+  const engine = document.getElementById('engineSelect').value;
+  localStorage.setItem('engine', engine);
+
+  const gk = document.getElementById('geminiKeyInput').value.trim();
+  if (gk) localStorage.setItem('gemini_key', gk); else localStorage.removeItem('gemini_key');
+
+  const ak = document.getElementById('anthropicKeyInput').value.trim();
+  if (ak) localStorage.setItem('anthropic_key', ak); else localStorage.removeItem('anthropic_key');
+
   const ejsKey = document.getElementById('emailjsKeyInput').value.trim();
   const ejsService = document.getElementById('emailjsServiceInput').value.trim();
   const ejsTemplate = document.getElementById('emailjsTemplateInput').value.trim();
-
-  if (key) localStorage.setItem('gemini_key', key);
-  else localStorage.removeItem('gemini_key');
-
-  if (ejsKey) { localStorage.setItem('emailjs_key', ejsKey); emailjs.init(ejsKey); }
-  else localStorage.removeItem('emailjs_key');
-  if (ejsService) localStorage.setItem('emailjs_service', ejsService);
-  else localStorage.removeItem('emailjs_service');
-  if (ejsTemplate) localStorage.setItem('emailjs_template', ejsTemplate);
-  else localStorage.removeItem('emailjs_template');
+  if (ejsKey) { localStorage.setItem('emailjs_key', ejsKey); if (window.emailjs) emailjs.init(ejsKey); } else localStorage.removeItem('emailjs_key');
+  if (ejsService) localStorage.setItem('emailjs_service', ejsService); else localStorage.removeItem('emailjs_service');
+  if (ejsTemplate) localStorage.setItem('emailjs_template', ejsTemplate); else localStorage.removeItem('emailjs_template');
 
   closeSettings();
-  checkApiKey();
   showToast('Réglages enregistrés', 'success');
-}
-
-function checkApiKey() {
-  const key = localStorage.getItem('gemini_key');
-  const el = document.getElementById('apiStatus');
-  if (key) {
-    el.textContent = '✓ Clé Gemini configurée (gratuit)';
-    el.className = 'api-status ok';
-  } else {
-    el.textContent = '⚠ Clé requise pour transformer';
-    el.className = 'api-status missing';
-  }
 }
 
 // --- Mode ---
@@ -321,74 +362,152 @@ function stopRecording() {
   document.getElementById('listening').classList.remove('active');
 }
 
+// --- Local processing (no API) ---
+function processLocal(text) {
+  if (mode === 'tasks') {
+    // Split by sentences, conjunctions, line breaks
+    const tasks = text
+      .replace(/\n+/g, '. ')
+      .split(/(?:\.\s*|\s*,\s+(?:et |puis |ensuite |aussi |après )|\s+et\s+(?:aussi\s+)?|\s+puis\s+|\s+ensuite\s+)/i)
+      .map(s => s.trim())
+      .filter(s => s.length > 2)
+      .map(s => {
+        // Clean filler words
+        let clean = s.replace(/^(euh|heu|bah|ben|bon|donc|alors|du coup|en fait)\s+/gi, '');
+        // Capitalize first letter
+        clean = clean.charAt(0).toUpperCase() + clean.slice(1);
+        // Remove trailing period
+        clean = clean.replace(/\.$/, '');
+        return clean;
+      })
+      .filter(s => s.length > 2);
+    return { tasks: tasks.length ? tasks : [text] };
+  } else {
+    // Memo: basic cleanup
+    let clean = text
+      .replace(/\b(euh|heu|bah|ben)\b\s*/gi, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+    clean = clean.charAt(0).toUpperCase() + clean.slice(1);
+    const words = clean.split(/\s+/);
+    const title = words.slice(0, 6).join(' ') + (words.length > 6 ? '…' : '');
+    return { title, content: clean };
+  }
+}
+
+// --- API processing ---
+async function processWithGemini(text, systemPrompt) {
+  const apiKey = localStorage.getItem('gemini_key');
+  if (!apiKey) throw new Error('Clé Gemini non configurée. Va dans ⚙ Réglages.');
+
+  const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      system_instruction: { parts: [{ text: systemPrompt }] },
+      contents: [{ parts: [{ text }] }],
+      generationConfig: { maxOutputTokens: 1000, responseMimeType: 'application/json' }
+    })
+  });
+
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}));
+    throw new Error(err.error?.message || 'Erreur Gemini ' + r.status);
+  }
+  const data = await r.json();
+  const txt = data.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
+  return JSON.parse(txt.replace(/```json|```/g, '').trim());
+}
+
+async function processWithAnthropic(text, systemPrompt) {
+  const apiKey = localStorage.getItem('anthropic_key');
+  if (!apiKey) throw new Error('Clé Anthropic non configurée. Va dans ⚙ Réglages.');
+
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: text }]
+    })
+  });
+
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}));
+    throw new Error(err.error?.message || 'Erreur Anthropic ' + r.status);
+  }
+  const data = await r.json();
+  const txt = data.content?.map(c => c.text || '').join('') || '';
+  return JSON.parse(txt.replace(/```json|```/g, '').trim());
+}
+
 // --- Process ---
 async function processText() {
   rawText = getTranscriptText();
   if (!rawText) return;
 
-  const apiKey = localStorage.getItem('gemini_key');
-  if (!apiKey) {
-    showToast('Configure ta clé Gemini dans les réglages ⚙', 'error');
-    openSettings();
-    return;
-  }
-
   stopRecording();
   const pb = document.getElementById('processBtn');
   pb.disabled = true;
   const rd = document.getElementById('results');
-  const pe = document.createElement('div');
-  pe.className = 'processing';
-  pe.innerHTML = '<div class="spinner"></div>Traitement en cours…';
-  rd.prepend(pe);
+  const engine = getEngine();
 
   const sp = mode === 'tasks'
     ? 'Tu es un assistant qui transforme des notes dictées en liste de tâches claire et actionnable.\nRègles:\n- Extrais chaque action concrète identifiable\n- Reformule en phrases courtes et directes à l\'impératif ou infinitif\n- Si une tâche a un contexte important (deadline, personne, lieu), inclus-le entre parenthèses\n- Numérote les tâches\n- Réponds UNIQUEMENT en JSON : {"tasks": ["tâche 1", "tâche 2", ...]}'
     : 'Tu es un assistant qui transforme des notes dictées en mémo structuré et professionnel.\nRègles:\n- Génère un titre court et percutant\n- Structure le contenu en paragraphes clairs\n- Utilise **gras** pour les points clés\n- Corrige la grammaire et les hésitations de l\'oral\n- Garde le sens et les détails importants\n- Réponds UNIQUEMENT en JSON : {"title": "...", "content": "..."}';
 
-  try {
-    const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' + apiKey, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        system_instruction: { parts: [{ text: sp }] },
-        contents: [{ parts: [{ text: rawText }] }],
-        generationConfig: { maxOutputTokens: 1000, responseMimeType: 'application/json' }
-      })
-    });
+  let pe = null;
+  if (engine !== 'local') {
+    pe = document.createElement('div');
+    pe.className = 'processing';
+    pe.innerHTML = '<div class="spinner"></div>Traitement en cours…';
+    rd.prepend(pe);
+  }
 
-    if (!r.ok) {
-      const err = await r.json().catch(() => ({}));
-      throw new Error(err.error?.message || `Erreur HTTP ${r.status}`);
+  try {
+    let parsed;
+    if (engine === 'local') {
+      parsed = processLocal(rawText);
+    } else if (engine === 'gemini') {
+      parsed = await processWithGemini(rawText, sp);
+    } else {
+      parsed = await processWithAnthropic(rawText, sp);
     }
 
-    const data = await r.json();
-    const txt = data.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
-    const cl = txt.replace(/```json|```/g, '').trim();
-    const parsed = JSON.parse(cl);
-    pe.remove();
+    if (pe) pe.remove();
     const id = Date.now().toString();
-    renderResult(parsed, id);
+    renderResult(parsed, id, engine);
     saveResult(id, parsed);
     rawText = '';
-    const box = document.getElementById('transcript');
-    box.textContent = '';
-    showToast('Transformation réussie !', 'success');
+    document.getElementById('transcript').textContent = '';
+    const labels = { local: 'Local', gemini: 'Gemini', anthropic: 'Claude' };
+    showToast('Transformé via ' + labels[engine], 'success');
   } catch (err) {
-    console.error('API error:', err);
-    pe.innerHTML = '⚠ ' + escapeHtml(err.message || 'Erreur de traitement. Réessaie.');
-    setTimeout(() => pe.remove(), 4000);
+    console.error('Process error:', err);
+    if (pe) { pe.innerHTML = '⚠ ' + escapeHtml(err.message); setTimeout(() => pe.remove(), 5000); }
+    else showToast(err.message, 'error');
   }
   pb.disabled = false;
 }
 
 // --- Render ---
-function renderResult(data, id) {
+function renderResult(data, id, engine) {
   const rd = document.getElementById('results');
   document.getElementById('emptyState').style.display = 'none';
   const card = document.createElement('div');
   card.className = 'result-card';
   card.dataset.id = id;
+
+  const engineClass = engine || 'local';
+  const engineLabel = { local: 'Local', gemini: 'Gemini', anthropic: 'Claude' }[engineClass] || 'Local';
+  const badgeHtml = '<span class="engine-badge ' + engineClass + '">' + engineLabel + '</span>';
 
   const actionsHtml = '<div class="card-actions">'
     + '<button class="card-btn" onclick="copyCard(this)" title="Copier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copier</button>'
@@ -397,13 +516,13 @@ function renderResult(data, id) {
     + '</div>';
 
   if (data.tasks) {
-    card.innerHTML = '<h3>✓ Tâches extraites</h3>' + actionsHtml
+    card.innerHTML = '<h3>✓ Tâches extraites' + badgeHtml + '</h3>' + actionsHtml
       + '<div class="task-list">' + data.tasks.map(t =>
         '<div class="task-item"><div class="task-checkbox" onclick="toggleTask(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="task-text">' + escapeHtml(t) + '</span></div>'
       ).join('') + '</div>';
   } else if (data.title) {
     const fmt = data.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    card.innerHTML = '<h3>📝 ' + escapeHtml(data.title) + '</h3>' + actionsHtml
+    card.innerHTML = '<h3>📝 ' + escapeHtml(data.title) + badgeHtml + '</h3>' + actionsHtml
       + '<div class="memo-content">' + fmt + '</div>';
   }
   rd.prepend(card);
@@ -412,9 +531,6 @@ function renderResult(data, id) {
 function toggleTask(el) {
   el.classList.toggle('checked');
   el.nextElementSibling.classList.toggle('done');
-  // Update storage
-  const card = el.closest('.result-card');
-  if (card.dataset.id) updateStoredResult(card);
 }
 
 // --- Card actions ---
@@ -428,25 +544,22 @@ function getCardText(card) {
       return (c ? '✓' : '☐') + ' ' + t.textContent;
     }).join('\n');
   } else if (mc) {
-    text = card.querySelector('h3').textContent.replace('📝 ', '') + '\n\n' + mc.textContent;
+    text = card.querySelector('h3').textContent.replace('📝 ', '').replace(/Local|Gemini|Claude/g, '').trim() + '\n\n' + mc.textContent;
   }
   return text;
 }
 
 function copyCard(btn) {
   const text = getCardText(btn.closest('.result-card'));
-  navigator.clipboard.writeText(text).then(() => {
-    showToast('Copié dans le presse-papier', 'success');
-  });
+  navigator.clipboard.writeText(text).then(() => showToast('Copié dans le presse-papier', 'success'));
 }
 
 function emailCard(btn) {
   const card = btn.closest('.result-card');
   const text = getCardText(card);
-  const title = card.querySelector('h3')?.textContent || 'Note dictée';
+  const title = card.querySelector('h3')?.textContent?.replace(/Local|Gemini|Claude/g, '').trim() || 'Note dictée';
   const subject = 'Dictée → Actions : ' + title;
 
-  // Try EmailJS first
   const ejsService = localStorage.getItem('emailjs_service');
   const ejsTemplate = localStorage.getItem('emailjs_template');
   const ejsKey = localStorage.getItem('emailjs_key');
@@ -456,24 +569,15 @@ function emailCard(btn) {
       to_email: EMAIL_TO,
       subject: subject,
       message: text
-    }).then(() => {
-      showToast('Email envoyé à ' + EMAIL_TO, 'success');
-    }).catch((err) => {
-      console.error('EmailJS error:', err);
-      // Fallback to mailto
-      fallbackMailto(subject, text);
-    });
+    }).then(() => showToast('Email envoyé à ' + EMAIL_TO, 'success'))
+      .catch(() => fallbackMailto(subject, text));
   } else {
-    // Fallback mailto
     fallbackMailto(subject, text);
   }
 }
 
 function fallbackMailto(subject, text) {
-  const mailto = 'mailto:' + EMAIL_TO
-    + '?subject=' + encodeURIComponent(subject)
-    + '&body=' + encodeURIComponent(text);
-  window.location.href = mailto;
+  window.location.href = 'mailto:' + EMAIL_TO + '?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(text);
   showToast('Ouverture du client mail…', 'success');
 }
 
@@ -486,11 +590,7 @@ function deleteCard(btn) {
   setTimeout(() => {
     card.remove();
     removeResult(id);
-    // Show empty state if no results
-    const rd = document.getElementById('results');
-    if (!rd.querySelector('.result-card')) {
-      document.getElementById('emptyState').style.display = '';
-    }
+    if (!document.querySelector('.result-card')) document.getElementById('emptyState').style.display = '';
   }, 200);
 }
 
@@ -498,34 +598,27 @@ function deleteCard(btn) {
 function saveResult(id, data) {
   const stored = JSON.parse(localStorage.getItem('dictee_results') || '[]');
   stored.unshift({ id, data, date: new Date().toISOString() });
-  // Keep max 50 results
   if (stored.length > 50) stored.length = 50;
   localStorage.setItem('dictee_results', JSON.stringify(stored));
 }
 
 function removeResult(id) {
   const stored = JSON.parse(localStorage.getItem('dictee_results') || '[]');
-  const filtered = stored.filter(r => r.id !== id);
-  localStorage.setItem('dictee_results', JSON.stringify(filtered));
-}
-
-function updateStoredResult(card) {
-  // We could update checked states — for simplicity we skip this
+  localStorage.setItem('dictee_results', JSON.stringify(stored.filter(r => r.id !== id)));
 }
 
 function loadResults() {
   const stored = JSON.parse(localStorage.getItem('dictee_results') || '[]');
   if (!stored.length) return;
   document.getElementById('emptyState').style.display = 'none';
-  stored.forEach(r => renderResult(r.data, r.id));
+  stored.forEach(r => renderResult(r.data, r.id, 'local'));
 }
 
 // --- Clear ---
 function clearAll() {
   rawText = '';
   stopRecording();
-  const box = document.getElementById('transcript');
-  box.textContent = '';
+  document.getElementById('transcript').textContent = '';
   document.getElementById('processBtn').disabled = true;
 }
 
