@@ -4,29 +4,552 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Dictée → Actions</title>
+<link rel="manifest" href="data:application/json,%7B%22name%22%3A%22Dict%C3%A9e%20Actions%22%2C%22short_name%22%3A%22Dict%C3%A9e%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230F1117%22%2C%22theme_color%22%3A%22%236C5CE7%22%7D">
+<meta name="theme-color" content="#6C5CE7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
-:root{--bg:#0F1117;--surface:#1A1D27;--surface-2:#242836;--border:#2E3344;--text:#E8EAF0;--text-muted:#8B90A0;--accent:#6C5CE7;--accent-glow:rgba(108,92,231,0.25);--red:#FF6B6B;--red-glow:rgba(255,107,107,0.3);--green:#51CF66;--green-dim:rgba(81,207,102,0.15);--radius:14px;--font:'DM Sans',-apple-system,sans-serif;--mono:'JetBrains Mono',monospace}*{margin:0;padding:0;box-sizing:border-box}body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100dvh;display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent}.header{padding:16px 20px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}.header h1{font-size:18px;font-weight:700;letter-spacing:-0.3px}.header h1 span{color:var(--accent)}.mode-toggle{display:flex;background:var(--surface);border-radius:10px;padding:3px;gap:2px}.mode-btn{font-family:var(--font);font-size:12px;font-weight:600;padding:6px 14px;border:none;border-radius:8px;background:transparent;color:var(--text-muted);cursor:pointer;transition:all 0.2s}.mode-btn.active{background:var(--accent);color:#fff}.main{flex:1;display:flex;flex-direction:column;padding:16px 20px;gap:16px;overflow-y:auto}.transcript-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;min-height:100px;max-height:180px;overflow-y:auto;font-size:15px;line-height:1.55;color:var(--text-muted);position:relative}.transcript-box.has-text{color:var(--text)}.transcript-box .cursor{display:inline-block;width:2px;height:1em;background:var(--accent);margin-left:2px;vertical-align:text-bottom;animation:blink 1s step-end infinite}@keyframes blink{50%{opacity:0}}.listening-indicator{display:none;align-items:center;gap:8px;font-size:13px;font-weight:500;color:var(--red)}.listening-indicator.active{display:flex}.listening-dot{width:8px;height:8px;background:var(--red);border-radius:50%;animation:pulse-dot 1.2s ease-in-out infinite}@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.8)}}.results{display:flex;flex-direction:column;gap:10px;flex:1}.result-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;animation:slideUp 0.3s ease-out;position:relative}@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}.result-card h3{font-size:14px;font-weight:700;margin-bottom:12px;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px}.task-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}.task-item:last-child{border-bottom:none}.task-checkbox{flex-shrink:0;width:22px;height:22px;border-radius:6px;border:2px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;margin-top:1px}.task-checkbox.checked{background:var(--green);border-color:var(--green)}.task-checkbox.checked svg{opacity:1}.task-checkbox svg{opacity:0;transition:opacity 0.15s}.task-text{font-size:14px;line-height:1.5;flex:1}.task-text.done{text-decoration:line-through;color:var(--text-muted)}.memo-content{font-size:14px;line-height:1.65;white-space:pre-wrap}.memo-content strong{color:var(--accent);font-weight:600}.processing{display:flex;align-items:center;justify-content:center;gap:10px;padding:24px;color:var(--text-muted);font-size:14px;font-weight:500}.spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.controls{padding:12px 20px 24px;display:flex;flex-direction:column;align-items:center;gap:12px;border-top:1px solid var(--border);background:var(--bg)}.mic-btn{width:72px;height:72px;border-radius:50%;border:none;background:var(--accent);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;box-shadow:0 4px 20px var(--accent-glow);position:relative}.mic-btn:active{transform:scale(0.93)}.mic-btn.recording{background:var(--red);box-shadow:0 4px 24px var(--red-glow);animation:pulse-ring 1.5s ease-out infinite}@keyframes pulse-ring{0%{box-shadow:0 0 0 0 var(--red-glow),0 4px 24px var(--red-glow)}70%{box-shadow:0 0 0 16px transparent,0 4px 24px var(--red-glow)}100%{box-shadow:0 0 0 0 transparent,0 4px 24px var(--red-glow)}}.mic-btn svg{width:28px;height:28px}.btn-row{display:flex;gap:10px;width:100%}.action-btn{flex:1;font-family:var(--font);font-size:14px;font-weight:600;padding:12px;border:none;border-radius:10px;cursor:pointer;transition:all 0.15s}.action-btn:active{transform:scale(0.97)}.btn-process{background:var(--accent);color:#fff}.btn-process:disabled{opacity:0.4;cursor:not-allowed}.btn-clear{background:var(--surface);color:var(--text-muted);border:1px solid var(--border)}.copy-btn{position:absolute;top:8px;right:8px;background:var(--surface-2);border:1px solid var(--border);color:var(--text-muted);border-radius:8px;padding:6px 10px;font-size:11px;font-family:var(--font);font-weight:600;cursor:pointer;transition:all 0.15s}.copy-btn:hover{color:var(--text);border-color:var(--accent)}.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;color:var(--text-muted);gap:8px;padding:40px 20px;text-align:center}.empty-state svg{opacity:0.3;margin-bottom:4px}.empty-state p{font-size:14px;line-height:1.5}.empty-state .hint{font-size:12px;opacity:0.6}::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}@media(max-width:400px){.mode-btn{padding:5px 10px;font-size:11px}.header h1{font-size:16px}}
+:root{--bg:#0F1117;--surface:#1A1D27;--surface-2:#242836;--border:#2E3344;--text:#E8EAF0;--text-muted:#8B90A0;--accent:#6C5CE7;--accent-glow:rgba(108,92,231,0.25);--red:#FF6B6B;--red-glow:rgba(255,107,107,0.3);--green:#51CF66;--green-dim:rgba(81,207,102,0.15);--orange:#FFA94D;--radius:14px;--font:'DM Sans',-apple-system,sans-serif;--mono:'JetBrains Mono',monospace}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100dvh;display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent}
+
+/* Header */
+.header{padding:16px 20px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.header-left{display:flex;align-items:center;gap:10px}
+.header h1{font-size:18px;font-weight:700;letter-spacing:-0.3px}
+.header h1 span{color:var(--accent)}
+.settings-btn{background:none;border:none;color:var(--text-muted);cursor:pointer;padding:6px;border-radius:8px;transition:color 0.2s}
+.settings-btn:hover{color:var(--accent)}
+.settings-btn svg{width:20px;height:20px}
+.mode-toggle{display:flex;background:var(--surface);border-radius:10px;padding:3px;gap:2px}
+.mode-btn{font-family:var(--font);font-size:12px;font-weight:600;padding:6px 14px;border:none;border-radius:8px;background:transparent;color:var(--text-muted);cursor:pointer;transition:all 0.2s}
+.mode-btn.active{background:var(--accent);color:#fff}
+
+/* Main */
+.main{flex:1;display:flex;flex-direction:column;padding:16px 20px;gap:16px;overflow-y:auto}
+.transcript-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;min-height:80px;max-height:160px;overflow-y:auto;font-size:15px;line-height:1.55;color:var(--text);outline:none;white-space:pre-wrap;word-wrap:break-word}
+.transcript-box:empty::before{content:attr(data-placeholder);color:var(--text-muted)}
+.transcript-box .cursor{display:inline-block;width:2px;height:1em;background:var(--accent);margin-left:2px;vertical-align:text-bottom;animation:blink 1s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+.listening-indicator{display:none;align-items:center;gap:8px;font-size:13px;font-weight:500;color:var(--red)}
+.listening-indicator.active{display:flex}
+.listening-dot{width:8px;height:8px;background:var(--red);border-radius:50%;animation:pulse-dot 1.2s ease-in-out infinite}
+@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.8)}}
+
+/* Results */
+.results{display:flex;flex-direction:column;gap:10px;flex:1}
+.result-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;animation:slideUp 0.3s ease-out;position:relative}
+@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.result-card h3{font-size:14px;font-weight:700;margin-bottom:12px;color:var(--accent);text-transform:uppercase;letter-spacing:0.5px}
+.card-actions{position:absolute;top:8px;right:8px;display:flex;gap:4px}
+.card-btn{background:var(--surface-2);border:1px solid var(--border);color:var(--text-muted);border-radius:8px;padding:6px 10px;font-size:11px;font-family:var(--font);font-weight:600;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:4px}
+.card-btn:hover{color:var(--text);border-color:var(--accent)}
+.card-btn.email-btn:hover{border-color:var(--orange);color:var(--orange)}
+.card-btn.delete-btn:hover{border-color:var(--red);color:var(--red)}
+.card-btn svg{width:12px;height:12px}
+.task-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.task-item:last-child{border-bottom:none}
+.task-checkbox{flex-shrink:0;width:22px;height:22px;border-radius:6px;border:2px solid var(--border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;margin-top:1px}
+.task-checkbox.checked{background:var(--green);border-color:var(--green)}
+.task-checkbox.checked svg{opacity:1}
+.task-checkbox svg{opacity:0;transition:opacity 0.15s}
+.task-text{font-size:14px;line-height:1.5;flex:1}
+.task-text.done{text-decoration:line-through;color:var(--text-muted)}
+.memo-content{font-size:14px;line-height:1.65;white-space:pre-wrap}
+.memo-content strong{color:var(--accent);font-weight:600}
+.processing{display:flex;align-items:center;justify-content:center;gap:10px;padding:24px;color:var(--text-muted);font-size:14px;font-weight:500}
+.spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;color:var(--text-muted);gap:8px;padding:40px 20px;text-align:center}
+.empty-state svg{opacity:0.3;margin-bottom:4px}
+.empty-state p{font-size:14px;line-height:1.5}
+.empty-state .hint{font-size:12px;opacity:0.6}
+
+/* Controls */
+.controls{padding:12px 20px 24px;display:flex;flex-direction:column;align-items:center;gap:12px;border-top:1px solid var(--border);background:var(--bg)}
+.mic-btn{width:72px;height:72px;border-radius:50%;border:none;background:var(--accent);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;box-shadow:0 4px 20px var(--accent-glow);position:relative}
+.mic-btn:active{transform:scale(0.93)}
+.mic-btn.recording{background:var(--red);box-shadow:0 4px 24px var(--red-glow);animation:pulse-ring 1.5s ease-out infinite}
+@keyframes pulse-ring{0%{box-shadow:0 0 0 0 var(--red-glow),0 4px 24px var(--red-glow)}70%{box-shadow:0 0 0 16px transparent,0 4px 24px var(--red-glow)}100%{box-shadow:0 0 0 0 transparent,0 4px 24px var(--red-glow)}}
+.mic-btn svg{width:28px;height:28px}
+.btn-row{display:flex;gap:10px;width:100%}
+.action-btn{flex:1;font-family:var(--font);font-size:14px;font-weight:600;padding:12px;border:none;border-radius:10px;cursor:pointer;transition:all 0.15s}
+.action-btn:active{transform:scale(0.97)}
+.btn-process{background:var(--accent);color:#fff}
+.btn-process:disabled{opacity:0.4;cursor:not-allowed}
+.btn-clear{background:var(--surface);color:var(--text-muted);border:1px solid var(--border)}
+
+/* Settings Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.active{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:100%;max-width:400px}
+.modal h2{font-size:16px;font-weight:700;margin-bottom:16px;color:var(--accent)}
+.modal label{display:block;font-size:13px;font-weight:600;color:var(--text-muted);margin-bottom:6px;margin-top:14px}
+.modal label:first-of-type{margin-top:0}
+.modal input{width:100%;padding:10px 12px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none}
+.modal input:focus{border-color:var(--accent)}
+.modal .hint{font-size:11px;color:var(--text-muted);margin-top:4px;line-height:1.4}
+.modal-btns{display:flex;gap:10px;margin-top:20px}
+.modal-btns button{flex:1;padding:10px;border:none;border-radius:8px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer}
+.modal-btns .save-btn{background:var(--accent);color:#fff}
+.modal-btns .cancel-btn{background:var(--surface-2);color:var(--text-muted);border:1px solid var(--border)}
+.api-status{font-size:11px;margin-top:6px;font-weight:500}
+.api-status.ok{color:var(--green)}
+.api-status.missing{color:var(--red)}
+
+/* Toast */
+.toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:200;opacity:0;transition:all 0.3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{border-color:var(--green);color:var(--green)}
+.toast.error{border-color:var(--red);color:var(--red)}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+@media(max-width:400px){.mode-btn{padding:5px 10px;font-size:11px}.header h1{font-size:16px}}
 </style>
 </head>
 <body>
-<div class="header"><h1>Dictée <span>→</span> Actions</h1><div class="mode-toggle"><button class="mode-btn active" data-mode="tasks" onclick="setMode('tasks')">Tâches</button><button class="mode-btn" data-mode="memo" onclick="setMode('memo')">Mémo</button></div></div>
-<div class="main" id="main"><div class="transcript-box" id="transcript">Appuie sur le micro et dicte tes notes…</div><div class="listening-indicator" id="listening"><div class="listening-dot"></div>Écoute en cours…</div><div class="results" id="results"><div class="empty-state" id="emptyState"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg><p>Dicte une note vocale,<br>elle sera transformée automatiquement.</p><span class="hint">Tâches = liste d'actions · Mémo = note structurée</span></div></div></div>
-<div class="controls"><button class="mic-btn" id="micBtn" onclick="toggleRecording()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></button><div class="btn-row"><button class="action-btn btn-clear" onclick="clearAll()">Effacer</button><button class="action-btn btn-process" id="processBtn" onclick="processText()" disabled>Transformer</button></div></div>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <h1>Dictée <span>→</span> Actions</h1>
+    <button class="settings-btn" onclick="openSettings()" title="Réglages">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </div>
+  <div class="mode-toggle">
+    <button class="mode-btn active" data-mode="tasks" onclick="setMode('tasks')">Tâches</button>
+    <button class="mode-btn" data-mode="memo" onclick="setMode('memo')">Mémo</button>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main" id="main">
+  <div class="transcript-box" id="transcript" contenteditable="true" data-placeholder="Appuie sur le micro ou tape tes notes ici…"></div>
+  <div class="listening-indicator" id="listening"><div class="listening-dot"></div>Écoute en cours…</div>
+  <div class="results" id="results">
+    <div class="empty-state" id="emptyState">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      <p>Dicte une note vocale ou tape du texte,<br>puis clique sur Transformer.</p>
+      <span class="hint">Tâches = liste d'actions · Mémo = note structurée</span>
+    </div>
+  </div>
+</div>
+
+<!-- Controls -->
+<div class="controls">
+  <button class="mic-btn" id="micBtn" onclick="toggleRecording()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+  </button>
+  <div class="btn-row">
+    <button class="action-btn btn-clear" onclick="clearAll()">Effacer</button>
+    <button class="action-btn btn-process" id="processBtn" onclick="processText()" disabled>Transformer</button>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal">
+    <h2>⚙ Réglages</h2>
+    <label>Clé API Anthropic</label>
+    <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-...">
+    <div class="hint">Obtiens ta clé sur <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:var(--accent)">console.anthropic.com</a></div>
+    <div class="api-status" id="apiStatus"></div>
+
+    <label>EmailJS Public Key <span style="opacity:0.5">(optionnel)</span></label>
+    <input type="text" id="emailjsKeyInput" placeholder="Ex: user_aBcDeFgHiJk">
+    <label>EmailJS Service ID <span style="opacity:0.5">(optionnel)</span></label>
+    <input type="text" id="emailjsServiceInput" placeholder="Ex: service_xxx">
+    <label>EmailJS Template ID <span style="opacity:0.5">(optionnel)</span></label>
+    <input type="text" id="emailjsTemplateInput" placeholder="Ex: template_xxx">
+    <div class="hint">Pour l'envoi auto d'emails. Inscris-toi sur <a href="https://www.emailjs.com/" target="_blank" style="color:var(--accent)">emailjs.com</a> (gratuit). Sans config EmailJS, un mailto: sera utilisé.</div>
+
+    <div class="modal-btns">
+      <button class="cancel-btn" onclick="closeSettings()">Annuler</button>
+      <button class="save-btn" onclick="saveSettings()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
 <script>
-let mode='tasks',isRecording=false,recognition=null,rawText='',results=[];
-const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-if(!SR)document.getElementById('transcript').textContent='⚠ Reconnaissance vocale non supportée. Utilise Chrome ou Safari.';
-function setMode(m){mode=m;document.querySelectorAll('.mode-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===m))}
-function toggleRecording(){isRecording?stopRecording():startRecording()}
-function startRecording(){if(!SR)return;recognition=new SR();recognition.lang='fr-FR';recognition.interimResults=true;recognition.continuous=true;recognition.maxAlternatives=1;let ft=rawText;recognition.onstart=()=>{isRecording=true;document.getElementById('micBtn').classList.add('recording');document.getElementById('listening').classList.add('active')};recognition.onresult=(e)=>{let interim='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal){ft+=(ft?' ':'')+t;rawText=ft}else interim=t}const d=ft+(interim?'<span style="opacity:0.4">'+interim+'</span>':'');const box=document.getElementById('transcript');box.innerHTML=d+'<span class="cursor"></span>';box.classList.add('has-text');document.getElementById('processBtn').disabled=!ft.trim();document.getElementById('emptyState').style.display='none'};recognition.onerror=(e)=>{console.error('Speech error',e.error);if(e.error==='not-allowed')document.getElementById('transcript').textContent='⚠ Autorise l\'accès au micro.';stopRecording()};recognition.onend=()=>{if(isRecording)try{recognition.start()}catch(e){stopRecording()}};try{recognition.start()}catch(e){console.error(e)}}
-function stopRecording(){isRecording=false;if(recognition)try{recognition.stop()}catch(e){}recognition=null;document.getElementById('micBtn').classList.remove('recording');document.getElementById('listening').classList.remove('active')}
-async function processText(){if(!rawText.trim())return;stopRecording();const pb=document.getElementById('processBtn');pb.disabled=true;const rd=document.getElementById('results');const pe=document.createElement('div');pe.className='processing';pe.innerHTML='<div class="spinner"></div>Traitement en cours…';rd.prepend(pe);const sp=mode==='tasks'?'Tu es un assistant qui transforme des notes dictées en liste de tâches claire et actionnable.\nRègles:\n- Extrais chaque action concrète identifiable\n- Reformule en phrases courtes et directes à l\'impératif ou infinitif\n- Si une tâche a un contexte important (deadline, personne, lieu), inclus-le entre parenthèses\n- Numérote les tâches\n- Réponds UNIQUEMENT en JSON : {"tasks": ["tâche 1", "tâche 2", ...]}':'Tu es un assistant qui transforme des notes dictées en mémo structuré et professionnel.\nRègles:\n- Génère un titre court et percutant\n- Structure le contenu en paragraphes clairs\n- Utilise **gras** pour les points clés\n- Corrige la grammaire et les hésitations de l\'oral\n- Garde le sens et les détails importants\n- Réponds UNIQUEMENT en JSON : {"title": "...", "content": "..."}';try{const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,system:sp,messages:[{role:"user",content:rawText}]})});const data=await r.json();const txt=data.content?.map(c=>c.text||'').join('')||'';const cl=txt.replace(/```json|```/g,'').trim();const parsed=JSON.parse(cl);pe.remove();renderResult(parsed);rawText='';document.getElementById('transcript').innerHTML='Appuie sur le micro pour une nouvelle note…';document.getElementById('transcript').classList.remove('has-text')}catch(err){console.error('API error:',err);pe.innerHTML='⚠ Erreur de traitement. Réessaie.';setTimeout(()=>pe.remove(),3000)}pb.disabled=false}
-function renderResult(data){const rd=document.getElementById('results');document.getElementById('emptyState').style.display='none';const card=document.createElement('div');card.className='result-card';if(data.tasks){card.innerHTML='<h3>✓ Tâches extraites</h3><button class="copy-btn" onclick="copyCard(this)">Copier</button><div class="task-list">'+data.tasks.map(t=>'<div class="task-item"><div class="task-checkbox" onclick="toggleTask(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="task-text">'+escapeHtml(t)+'</span></div>').join('')+'</div>'}else if(data.title){const fmt=data.content.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');card.innerHTML='<h3>📝 '+escapeHtml(data.title)+'</h3><button class="copy-btn" onclick="copyCard(this)">Copier</button><div class="memo-content">'+fmt+'</div>'}rd.prepend(card)}
-function toggleTask(el){el.classList.toggle('checked');el.nextElementSibling.classList.toggle('done')}
-function copyCard(btn){const card=btn.closest('.result-card');const tt=card.querySelectorAll('.task-text');const mc=card.querySelector('.memo-content');let text='';if(tt.length){text=Array.from(tt).map(t=>{const c=t.previousElementSibling.classList.contains('checked');return(c?'✓':'☐')+' '+t.textContent}).join('\n')}else if(mc){text=card.querySelector('h3').textContent.replace('📝 ','')+'\n\n'+mc.textContent}navigator.clipboard.writeText(text).then(()=>{btn.textContent='Copié ✓';setTimeout(()=>btn.textContent='Copier',1500)})}
-function clearAll(){rawText='';stopRecording();document.getElementById('transcript').innerHTML='Appuie sur le micro et dicte tes notes…';document.getElementById('transcript').classList.remove('has-text');document.getElementById('processBtn').disabled=true;document.getElementById('results').innerHTML='<div class="empty-state" id="emptyState"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg><p>Dicte une note vocale,<br>elle sera transformée automatiquement.</p><span class="hint">Tâches = liste d\'actions · Mémo = note structurée</span></div>'}
-function escapeHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+const EMAIL_TO = 'walid.benbrahim@uniha.org';
+let mode = 'tasks', isRecording = false, recognition = null, rawText = '';
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+// --- Init ---
+document.addEventListener('DOMContentLoaded', () => {
+  if (!SR) showToast('Reconnaissance vocale non supportée. Utilise Chrome.', 'error');
+  checkApiKey();
+  loadResults();
+  initTranscriptBox();
+  // Init EmailJS if configured
+  const ejsKey = localStorage.getItem('emailjs_key');
+  if (ejsKey && window.emailjs) {
+    emailjs.init(ejsKey);
+  }
+});
+
+// --- Transcript (contenteditable) ---
+function initTranscriptBox() {
+  const box = document.getElementById('transcript');
+  box.addEventListener('input', () => {
+    rawText = box.textContent.trim();
+    document.getElementById('processBtn').disabled = !rawText;
+  });
+  box.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (rawText) processText();
+    }
+  });
+}
+
+function getTranscriptText() {
+  return document.getElementById('transcript').textContent.trim();
+}
+
+// --- Settings ---
+function openSettings() {
+  document.getElementById('apiKeyInput').value = localStorage.getItem('anthropic_key') || '';
+  document.getElementById('emailjsKeyInput').value = localStorage.getItem('emailjs_key') || '';
+  document.getElementById('emailjsServiceInput').value = localStorage.getItem('emailjs_service') || '';
+  document.getElementById('emailjsTemplateInput').value = localStorage.getItem('emailjs_template') || '';
+  checkApiKey();
+  document.getElementById('settingsModal').classList.add('active');
+}
+
+function closeSettings() {
+  document.getElementById('settingsModal').classList.remove('active');
+}
+
+function saveSettings() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  const ejsKey = document.getElementById('emailjsKeyInput').value.trim();
+  const ejsService = document.getElementById('emailjsServiceInput').value.trim();
+  const ejsTemplate = document.getElementById('emailjsTemplateInput').value.trim();
+
+  if (key) localStorage.setItem('anthropic_key', key);
+  else localStorage.removeItem('anthropic_key');
+
+  if (ejsKey) { localStorage.setItem('emailjs_key', ejsKey); emailjs.init(ejsKey); }
+  else localStorage.removeItem('emailjs_key');
+  if (ejsService) localStorage.setItem('emailjs_service', ejsService);
+  else localStorage.removeItem('emailjs_service');
+  if (ejsTemplate) localStorage.setItem('emailjs_template', ejsTemplate);
+  else localStorage.removeItem('emailjs_template');
+
+  closeSettings();
+  checkApiKey();
+  showToast('Réglages enregistrés', 'success');
+}
+
+function checkApiKey() {
+  const key = localStorage.getItem('anthropic_key');
+  const el = document.getElementById('apiStatus');
+  if (key) {
+    el.textContent = '✓ Clé configurée';
+    el.className = 'api-status ok';
+  } else {
+    el.textContent = '⚠ Clé requise pour transformer';
+    el.className = 'api-status missing';
+  }
+}
+
+// --- Mode ---
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === m));
+}
+
+// --- Recording ---
+function toggleRecording() { isRecording ? stopRecording() : startRecording(); }
+
+function startRecording() {
+  if (!SR) return showToast('Reconnaissance vocale non supportée', 'error');
+  recognition = new SR();
+  recognition.lang = 'fr-FR';
+  recognition.interimResults = true;
+  recognition.continuous = true;
+  recognition.maxAlternatives = 1;
+  let ft = rawText;
+
+  recognition.onstart = () => {
+    isRecording = true;
+    document.getElementById('micBtn').classList.add('recording');
+    document.getElementById('listening').classList.add('active');
+  };
+
+  recognition.onresult = (e) => {
+    let interim = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const t = e.results[i][0].transcript;
+      if (e.results[i].isFinal) { ft += (ft ? ' ' : '') + t; rawText = ft; }
+      else interim = t;
+    }
+    const box = document.getElementById('transcript');
+    box.innerHTML = escapeHtml(ft) + (interim ? '<span style="opacity:0.4">' + escapeHtml(interim) + '</span>' : '') + '<span class="cursor"></span>';
+    document.getElementById('processBtn').disabled = !ft.trim();
+    document.getElementById('emptyState').style.display = 'none';
+  };
+
+  recognition.onerror = (e) => {
+    console.error('Speech error', e.error);
+    if (e.error === 'not-allowed') showToast('Autorise l\'accès au micro dans les réglages', 'error');
+    stopRecording();
+  };
+
+  recognition.onend = () => {
+    if (isRecording) try { recognition.start(); } catch(e) { stopRecording(); }
+  };
+
+  try { recognition.start(); } catch(e) { console.error(e); }
+}
+
+function stopRecording() {
+  isRecording = false;
+  if (recognition) try { recognition.stop(); } catch(e) {}
+  recognition = null;
+  document.getElementById('micBtn').classList.remove('recording');
+  document.getElementById('listening').classList.remove('active');
+}
+
+// --- Process ---
+async function processText() {
+  rawText = getTranscriptText();
+  if (!rawText) return;
+
+  const apiKey = localStorage.getItem('anthropic_key');
+  if (!apiKey) {
+    showToast('Configure ta clé API dans les réglages ⚙', 'error');
+    openSettings();
+    return;
+  }
+
+  stopRecording();
+  const pb = document.getElementById('processBtn');
+  pb.disabled = true;
+  const rd = document.getElementById('results');
+  const pe = document.createElement('div');
+  pe.className = 'processing';
+  pe.innerHTML = '<div class="spinner"></div>Traitement en cours…';
+  rd.prepend(pe);
+
+  const sp = mode === 'tasks'
+    ? 'Tu es un assistant qui transforme des notes dictées en liste de tâches claire et actionnable.\nRègles:\n- Extrais chaque action concrète identifiable\n- Reformule en phrases courtes et directes à l\'impératif ou infinitif\n- Si une tâche a un contexte important (deadline, personne, lieu), inclus-le entre parenthèses\n- Numérote les tâches\n- Réponds UNIQUEMENT en JSON : {"tasks": ["tâche 1", "tâche 2", ...]}'
+    : 'Tu es un assistant qui transforme des notes dictées en mémo structuré et professionnel.\nRègles:\n- Génère un titre court et percutant\n- Structure le contenu en paragraphes clairs\n- Utilise **gras** pour les points clés\n- Corrige la grammaire et les hésitations de l\'oral\n- Garde le sens et les détails importants\n- Réponds UNIQUEMENT en JSON : {"title": "...", "content": "..."}';
+
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: sp,
+        messages: [{ role: 'user', content: rawText }]
+      })
+    });
+
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      throw new Error(err.error?.message || `Erreur HTTP ${r.status}`);
+    }
+
+    const data = await r.json();
+    const txt = data.content?.map(c => c.text || '').join('') || '';
+    const cl = txt.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(cl);
+    pe.remove();
+    const id = Date.now().toString();
+    renderResult(parsed, id);
+    saveResult(id, parsed);
+    rawText = '';
+    const box = document.getElementById('transcript');
+    box.textContent = '';
+    showToast('Transformation réussie !', 'success');
+  } catch (err) {
+    console.error('API error:', err);
+    pe.innerHTML = '⚠ ' + escapeHtml(err.message || 'Erreur de traitement. Réessaie.');
+    setTimeout(() => pe.remove(), 4000);
+  }
+  pb.disabled = false;
+}
+
+// --- Render ---
+function renderResult(data, id) {
+  const rd = document.getElementById('results');
+  document.getElementById('emptyState').style.display = 'none';
+  const card = document.createElement('div');
+  card.className = 'result-card';
+  card.dataset.id = id;
+
+  const actionsHtml = '<div class="card-actions">'
+    + '<button class="card-btn" onclick="copyCard(this)" title="Copier"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copier</button>'
+    + '<button class="card-btn email-btn" onclick="emailCard(this)" title="Email"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Email</button>'
+    + '<button class="card-btn delete-btn" onclick="deleteCard(this)" title="Supprimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>'
+    + '</div>';
+
+  if (data.tasks) {
+    card.innerHTML = '<h3>✓ Tâches extraites</h3>' + actionsHtml
+      + '<div class="task-list">' + data.tasks.map(t =>
+        '<div class="task-item"><div class="task-checkbox" onclick="toggleTask(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="task-text">' + escapeHtml(t) + '</span></div>'
+      ).join('') + '</div>';
+  } else if (data.title) {
+    const fmt = data.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    card.innerHTML = '<h3>📝 ' + escapeHtml(data.title) + '</h3>' + actionsHtml
+      + '<div class="memo-content">' + fmt + '</div>';
+  }
+  rd.prepend(card);
+}
+
+function toggleTask(el) {
+  el.classList.toggle('checked');
+  el.nextElementSibling.classList.toggle('done');
+  // Update storage
+  const card = el.closest('.result-card');
+  if (card.dataset.id) updateStoredResult(card);
+}
+
+// --- Card actions ---
+function getCardText(card) {
+  const tt = card.querySelectorAll('.task-text');
+  const mc = card.querySelector('.memo-content');
+  let text = '';
+  if (tt.length) {
+    text = Array.from(tt).map(t => {
+      const c = t.previousElementSibling.classList.contains('checked');
+      return (c ? '✓' : '☐') + ' ' + t.textContent;
+    }).join('\n');
+  } else if (mc) {
+    text = card.querySelector('h3').textContent.replace('📝 ', '') + '\n\n' + mc.textContent;
+  }
+  return text;
+}
+
+function copyCard(btn) {
+  const text = getCardText(btn.closest('.result-card'));
+  navigator.clipboard.writeText(text).then(() => {
+    showToast('Copié dans le presse-papier', 'success');
+  });
+}
+
+function emailCard(btn) {
+  const card = btn.closest('.result-card');
+  const text = getCardText(card);
+  const title = card.querySelector('h3')?.textContent || 'Note dictée';
+  const subject = 'Dictée → Actions : ' + title;
+
+  // Try EmailJS first
+  const ejsService = localStorage.getItem('emailjs_service');
+  const ejsTemplate = localStorage.getItem('emailjs_template');
+  const ejsKey = localStorage.getItem('emailjs_key');
+
+  if (ejsService && ejsTemplate && ejsKey && window.emailjs) {
+    emailjs.send(ejsService, ejsTemplate, {
+      to_email: EMAIL_TO,
+      subject: subject,
+      message: text
+    }).then(() => {
+      showToast('Email envoyé à ' + EMAIL_TO, 'success');
+    }).catch((err) => {
+      console.error('EmailJS error:', err);
+      // Fallback to mailto
+      fallbackMailto(subject, text);
+    });
+  } else {
+    // Fallback mailto
+    fallbackMailto(subject, text);
+  }
+}
+
+function fallbackMailto(subject, text) {
+  const mailto = 'mailto:' + EMAIL_TO
+    + '?subject=' + encodeURIComponent(subject)
+    + '&body=' + encodeURIComponent(text);
+  window.location.href = mailto;
+  showToast('Ouverture du client mail…', 'success');
+}
+
+function deleteCard(btn) {
+  const card = btn.closest('.result-card');
+  const id = card.dataset.id;
+  card.style.opacity = '0';
+  card.style.transform = 'translateY(-10px)';
+  card.style.transition = 'all 0.2s';
+  setTimeout(() => {
+    card.remove();
+    removeResult(id);
+    // Show empty state if no results
+    const rd = document.getElementById('results');
+    if (!rd.querySelector('.result-card')) {
+      document.getElementById('emptyState').style.display = '';
+    }
+  }, 200);
+}
+
+// --- Persistence ---
+function saveResult(id, data) {
+  const stored = JSON.parse(localStorage.getItem('dictee_results') || '[]');
+  stored.unshift({ id, data, date: new Date().toISOString() });
+  // Keep max 50 results
+  if (stored.length > 50) stored.length = 50;
+  localStorage.setItem('dictee_results', JSON.stringify(stored));
+}
+
+function removeResult(id) {
+  const stored = JSON.parse(localStorage.getItem('dictee_results') || '[]');
+  const filtered = stored.filter(r => r.id !== id);
+  localStorage.setItem('dictee_results', JSON.stringify(filtered));
+}
+
+function updateStoredResult(card) {
+  // We could update checked states — for simplicity we skip this
+}
+
+function loadResults() {
+  const stored = JSON.parse(localStorage.getItem('dictee_results') || '[]');
+  if (!stored.length) return;
+  document.getElementById('emptyState').style.display = 'none';
+  stored.forEach(r => renderResult(r.data, r.id));
+}
+
+// --- Clear ---
+function clearAll() {
+  rawText = '';
+  stopRecording();
+  const box = document.getElementById('transcript');
+  box.textContent = '';
+  document.getElementById('processBtn').disabled = true;
+}
+
+// --- Toast ---
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + (type || '');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.className = 'toast', 2500);
+}
+
+// --- Utils ---
+function escapeHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
 </script>
 </body>
 </html>
