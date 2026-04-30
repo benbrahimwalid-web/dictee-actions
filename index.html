@@ -74,12 +74,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .empty-state .hint{font-size:12px;opacity:0.6}
 
 /* Controls */
-.controls{padding:12px 20px 24px;display:flex;flex-direction:column;align-items:center;gap:12px;border-top:1px solid var(--border);background:var(--bg)}
-.mic-btn{width:72px;height:72px;border-radius:50%;border:none;background:var(--accent);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;box-shadow:0 4px 20px var(--accent-glow);position:relative}
+.controls{padding:12px 20px calc(20px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:12px;border-top:1px solid var(--border);background:var(--bg)}
+.mic-btn{position:fixed;right:18px;bottom:calc(96px + env(safe-area-inset-bottom));width:64px;height:64px;border-radius:50%;border:none;background:var(--accent);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;box-shadow:0 8px 24px var(--accent-glow);z-index:50}
 .mic-btn:active{transform:scale(0.93)}
-.mic-btn.recording{background:var(--red);box-shadow:0 4px 24px var(--red-glow);animation:pulse-ring 1.5s ease-out infinite}
-@keyframes pulse-ring{0%{box-shadow:0 0 0 0 var(--red-glow),0 4px 24px var(--red-glow)}70%{box-shadow:0 0 0 16px transparent,0 4px 24px var(--red-glow)}100%{box-shadow:0 0 0 0 transparent,0 4px 24px var(--red-glow)}}
-.mic-btn svg{width:28px;height:28px}
+.mic-btn.recording{background:var(--red);box-shadow:0 8px 28px var(--red-glow);animation:pulse-ring 1.5s ease-out infinite}
+@keyframes pulse-ring{0%{box-shadow:0 0 0 0 var(--red-glow),0 8px 28px var(--red-glow)}70%{box-shadow:0 0 0 16px transparent,0 8px 28px var(--red-glow)}100%{box-shadow:0 0 0 0 transparent,0 8px 28px var(--red-glow)}}
+.mic-btn svg{width:26px;height:26px}
 .btn-row{display:flex;gap:10px;width:100%}
 .action-btn{flex:1;font-family:var(--font);font-size:14px;font-weight:600;padding:12px;border:none;border-radius:10px;cursor:pointer;transition:all 0.15s}
 .action-btn:active{transform:scale(0.97)}
@@ -153,11 +153,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
   </div>
 </div>
 
+<!-- Mic FAB (flottant, persistant) -->
+<button class="mic-btn" id="micBtn" onclick="toggleRecording()" aria-label="Démarrer ou arrêter la dictée">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+</button>
+
 <!-- Controls -->
 <div class="controls">
-  <button class="mic-btn" id="micBtn" onclick="toggleRecording()">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-  </button>
   <div class="btn-row">
     <button class="action-btn btn-clear" onclick="clearAll()">Effacer</button>
     <button class="action-btn btn-process" id="processBtn" onclick="processText()" disabled>Transformer</button>
@@ -234,7 +236,11 @@ function initTranscriptBox() {
   box.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (rawText) processText();
+      const txt = getTranscriptText();
+      if (txt) {
+        rawText = txt;
+        processText();
+      }
     }
   });
 }
@@ -432,7 +438,7 @@ async function processWithAnthropic(text, systemPrompt) {
       'anthropic-dangerous-direct-browser-access': 'true'
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: 1000,
       system: systemPrompt,
       messages: [{ role: 'user', content: text }]
@@ -484,7 +490,7 @@ async function processText() {
     if (pe) pe.remove();
     const id = Date.now().toString();
     renderResult(parsed, id, engine);
-    saveResult(id, parsed);
+    saveResult(id, parsed, engine);
     rawText = '';
     document.getElementById('transcript').textContent = '';
     const labels = { local: 'Local', gemini: 'Gemini', anthropic: 'Claude' };
@@ -516,10 +522,12 @@ function renderResult(data, id, engine) {
     + '</div>';
 
   if (data.tasks) {
+    const done = Array.isArray(data.done) ? data.done : [];
     card.innerHTML = '<h3>✓ Tâches extraites' + badgeHtml + '</h3>' + actionsHtml
-      + '<div class="task-list">' + data.tasks.map(t =>
-        '<div class="task-item"><div class="task-checkbox" onclick="toggleTask(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="task-text">' + escapeHtml(t) + '</span></div>'
-      ).join('') + '</div>';
+      + '<div class="task-list">' + data.tasks.map((t, i) => {
+        const isDone = !!done[i];
+        return '<div class="task-item"><div class="task-checkbox' + (isDone ? ' checked' : '') + '" data-idx="' + i + '" onclick="toggleTask(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="task-text' + (isDone ? ' done' : '') + '">' + escapeHtml(t) + '</span></div>';
+      }).join('') + '</div>';
   } else if (data.title) {
     const fmt = data.content.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     card.innerHTML = '<h3>📝 ' + escapeHtml(data.title) + badgeHtml + '</h3>' + actionsHtml
@@ -531,9 +539,30 @@ function renderResult(data, id, engine) {
 function toggleTask(el) {
   el.classList.toggle('checked');
   el.nextElementSibling.classList.toggle('done');
+  const card = el.closest('.result-card');
+  if (!card) return;
+  const id = card.dataset.id;
+  const idx = parseInt(el.dataset.idx, 10);
+  if (Number.isNaN(idx)) return;
+  const stored = JSON.parse(localStorage.getItem('dictee_results') || '[]');
+  const r = stored.find(x => x.id === id);
+  if (r && r.data && Array.isArray(r.data.tasks)) {
+    if (!Array.isArray(r.data.done)) r.data.done = new Array(r.data.tasks.length).fill(false);
+    r.data.done[idx] = el.classList.contains('checked');
+    localStorage.setItem('dictee_results', JSON.stringify(stored));
+  }
 }
 
 // --- Card actions ---
+function getCardTitle(card) {
+  const h3 = card.querySelector('h3');
+  if (!h3) return 'Note dictée';
+  const clone = h3.cloneNode(true);
+  const badge = clone.querySelector('.engine-badge');
+  if (badge) badge.remove();
+  return clone.textContent.replace(/^[✓📝]\s*/, '').trim() || 'Note dictée';
+}
+
 function getCardText(card) {
   const tt = card.querySelectorAll('.task-text');
   const mc = card.querySelector('.memo-content');
@@ -544,7 +573,7 @@ function getCardText(card) {
       return (c ? '✓' : '☐') + ' ' + t.textContent;
     }).join('\n');
   } else if (mc) {
-    text = card.querySelector('h3').textContent.replace('📝 ', '').replace(/Local|Gemini|Claude/g, '').trim() + '\n\n' + mc.textContent;
+    text = getCardTitle(card) + '\n\n' + mc.textContent;
   }
   return text;
 }
@@ -557,7 +586,7 @@ function copyCard(btn) {
 function emailCard(btn) {
   const card = btn.closest('.result-card');
   const text = getCardText(card);
-  const title = card.querySelector('h3')?.textContent?.replace(/Local|Gemini|Claude/g, '').trim() || 'Note dictée';
+  const title = getCardTitle(card);
   const subject = 'Dictée → Actions : ' + title;
 
   const ejsService = localStorage.getItem('emailjs_service');
@@ -595,9 +624,9 @@ function deleteCard(btn) {
 }
 
 // --- Persistence ---
-function saveResult(id, data) {
+function saveResult(id, data, engine) {
   const stored = JSON.parse(localStorage.getItem('dictee_results') || '[]');
-  stored.unshift({ id, data, date: new Date().toISOString() });
+  stored.unshift({ id, data, engine: engine || 'local', date: new Date().toISOString() });
   if (stored.length > 50) stored.length = 50;
   localStorage.setItem('dictee_results', JSON.stringify(stored));
 }
@@ -611,7 +640,7 @@ function loadResults() {
   const stored = JSON.parse(localStorage.getItem('dictee_results') || '[]');
   if (!stored.length) return;
   document.getElementById('emptyState').style.display = 'none';
-  stored.forEach(r => renderResult(r.data, r.id, 'local'));
+  stored.forEach(r => renderResult(r.data, r.id, r.engine || 'local'));
 }
 
 // --- Clear ---
