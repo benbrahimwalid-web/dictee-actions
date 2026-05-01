@@ -234,7 +234,8 @@ function initTranscriptBox() {
     document.getElementById('processBtn').disabled = !rawText;
   });
   box.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    // Ctrl+Entrée (ou Cmd+Entrée) pour lancer la transformation
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
       const txt = getTranscriptText();
       if (txt) {
@@ -242,6 +243,7 @@ function initTranscriptBox() {
         processText();
       }
     }
+    // Entrée seul : comportement par défaut = saut de ligne
   });
 }
 
@@ -438,7 +440,7 @@ async function processWithAnthropic(text, systemPrompt) {
       'anthropic-dangerous-direct-browser-access': 'true'
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: 1000,
       system: systemPrompt,
       messages: [{ role: 'user', content: text }]
